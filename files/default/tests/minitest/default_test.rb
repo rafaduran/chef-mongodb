@@ -14,11 +14,16 @@ describe_recipe 'mongodb::default' do
   end
 
   # Can I do this in a smarter way??
-  it 'bound to the selected IP and port' do
+  it 'configured to listen the selected IP and port' do
     bind_ip = node[:mongodb][:bind_ip] || '0.0.0.0'
     port    = node[:mongodb][:port]
-    assert system("netstat -ptan | grep #{bind_ip}:#{port}"),
-           "MongoDB is not running bound to #{bind_ip}:#{port}"
+    mongo   = `ps xa | grep mongod`.strip
+    assert  (mongo =~ /--bind_ip #{bind_ip.gsub('.', '\.')}/),
+            "MongoDB is not listening to #{bind_ip} address:\n" +
+            mongo
+    assert  (mongo =~ /--port #{port}/),
+            "MongoDB is not listening to #{port} port:\n" +
+            mongo
   end
 
 end
